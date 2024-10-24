@@ -75,6 +75,9 @@ int aq_send( AlarmQueue aq, void * msg, MsgKind k){
 }
 
 int aq_recv( AlarmQueue aq, void * * msg) {
+    /*
+     * =========== ERROR HANDLING ===========
+     */
     // Check if the queue is initialized
     if (aq == NULL) {
         return AQ_UNINIT;
@@ -85,6 +88,9 @@ int aq_recv( AlarmQueue aq, void * * msg) {
         return AQ_NO_MSG;
     }
 
+    /*
+     * =========== PULLING MESSAGE ===========
+     */
     // Pull the node from head
     aq_frame * frame = (aq_frame*) aq;
     aq_node * pulled = frame->head;
@@ -97,6 +103,8 @@ int aq_recv( AlarmQueue aq, void * * msg) {
         frame->head = pulled->next;
         frame->head->prev = NULL;
     }
+
+    // Decrement the size of the queue and alarms if the message is an alarm
     frame->size--;
     if(pulled->kind == AQ_ALARM){
         frame->alarms--;

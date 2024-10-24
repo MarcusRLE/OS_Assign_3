@@ -28,9 +28,8 @@ int aq_send( AlarmQueue aq, void * msg, MsgKind k){
     }
 
     // Check if there is room for the message if alarm
-    if (k == AQ_ALARM && ((aq_header*) aq)->alarms > 0) {
+    if (k == AQ_ALARM && aq_size(aq) > 0) {
         return AQ_NO_ROOM;
-
     }
 
     aq_header * header = (aq_header*) aq;

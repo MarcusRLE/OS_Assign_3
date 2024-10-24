@@ -39,27 +39,25 @@ int aq_send( AlarmQueue aq, void * msg, MsgKind k){
     new_node->kind = k;
     new_node->next = NULL;
 
-    // If is alarm, add to the head
-    if (k == AQ_ALARM) {
+    if (k == AQ_ALARM) { // If is alarm, add to the head
         new_node->next = header->head;
         header->head = new_node;
         header->alarms++;
         return 0;
-    }
-
-    // If list is empty, add to the head
-    if(header->head == NULL) {
+    } else if(header->head == NULL) { // If list is empty, add to the head
         header->head = new_node;
         return 0;
+    } else { // Add to the end of the list
+        aq_node* current = ((aq_header*) aq)->head;
+        while(current->next != NULL) {
+            current = current->next;
+        }
+        current->next = new_node;
     }
 
-    // Add to the end of the list
-    aq_node* current = ((aq_header*) aq)->head;
-    while(current->next != NULL) {
-        current = current->next;
-    }
-    current->next = new_node;
-  return 0;
+    // Increment the size of the queue
+    header->size++;
+    return 0;
 }
 
 int aq_recv( AlarmQueue aq, void * * msg) {

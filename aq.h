@@ -28,6 +28,7 @@ typedef char MsgKind;
 
 typedef void * AlarmQueue;  // Opaque type 
 
+// Internal structures containing the messages
 typedef struct aq_node {
     void * msg;
     MsgKind kind;
@@ -35,6 +36,7 @@ typedef struct aq_node {
     struct aq_node * next;
 } aq_node;
 
+// Internal structure 'containing' the queue, pointing to head and tail
 typedef struct aq_frame{
     int size;
     int alarms;

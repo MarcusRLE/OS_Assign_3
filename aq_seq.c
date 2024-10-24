@@ -44,7 +44,7 @@ int aq_send( AlarmQueue aq, void * msg, MsgKind k){
     new_node->msg = msg;
     new_node->kind = k;
 
-    if (k == AQ_ALARM) { // If is alarm, add to the head
+    if (k == AQ_ALARM) { // If is alarm, insert as head
         // Set new_node as new head of the list
         new_node->next = frame->head;
         if(frame->head != NULL){ // If list is not empty, set prev of current head to new node
@@ -53,12 +53,12 @@ int aq_send( AlarmQueue aq, void * msg, MsgKind k){
         frame->head = new_node;
         new_node->prev = NULL;
         frame->alarms++;
-    } else { // If normal message
+    } else { // If normal message, insert as tail
         new_node->next = NULL;
-        if(frame->head == NULL) { // If list is empty, add to the head
+        if(frame->head == NULL) { // If list is empty, also make head
             frame->head = new_node;
             new_node->prev = NULL;
-        } else { // Add to the end of the list
+        } else { // Cycle to end of list
             aq_node* current = ((aq_frame*) aq)->head;
             while(current->next != NULL) {
                 current = current->next;

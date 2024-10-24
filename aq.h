@@ -28,18 +28,19 @@ typedef char MsgKind;
 
 typedef void * AlarmQueue;  // Opaque type 
 
-struct aq_header{
+typedef struct aq_node {
+    void * msg;
+    MsgKind kind;
+    struct aq_node * prev;
+    struct aq_node * next;
+} aq_node;
+
+typedef struct aq_frame{
     int size;
     int alarms;
-    struct aq_node * head;
-} typedef aq_header;
-
-
-struct aq_node {
-  void * msg;
-  MsgKind kind;
-  struct aq_node * next;
-} typedef aq_node;
+    aq_node * head;
+    aq_node * tail;
+} aq_frame;
 
 /**
  * @name    aq_create
@@ -75,7 +76,6 @@ int aq_size( AlarmQueue aq);
  * @retval  Number of alarm messages currently held by the queue
  */
 int aq_alarms( AlarmQueue aq);
-
 
 #endif /* LIBAQ_H_INCLUDED */
 

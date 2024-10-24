@@ -28,6 +28,19 @@ typedef char MsgKind;
 
 typedef void * AlarmQueue;  // Opaque type 
 
+struct aq_header{
+    int size;
+    int alarms;
+    struct aq_node * head;
+} typedef aq_header;
+
+
+struct aq_node {
+  void * msg;
+  MsgKind kind;
+  struct aq_node * next;
+} typedef aq_node;
+
 /**
  * @name    aq_create
  * @brief   Creates and initializes an alarm queue

@@ -1,5 +1,5 @@
 /**
- * @file   aq.h
+* @file   aq.h
  * @Author 02335 team
  * @date   October, 2024
  * @brief  Alarm queue header file.
@@ -17,16 +17,17 @@
 typedef char MsgKind;
 
 #define AQ_ALARM        1   // Message is of kind alarm
-#define AQ_NORMAL       0   // Message if of kind normal
+#define AQ_NORMAL       0   // Message is of kind normal
 
 /* Error codes */
+#define AQ_SUCCESS      0   // Operation was successful
 #define AQ_UNINIT      -1   // Queue has not been initialized
 #define AQ_NULL_MSG    -2   // Sent message is NULL
-#define AQ_NO_MSG      -3   // No messages
+#define AQ_NO_MSG      -3   // No messages available
 #define AQ_NO_ROOM     -4   // No room for message
 #define AQ_NOT_IMPL  -100   // Operation is not implemented
 
-typedef void * AlarmQueue;  // Opaque type 
+typedef void * AlarmQueue;  // Opaque type
 
 /**
  * @name    aq_create
@@ -63,6 +64,4 @@ int aq_size( AlarmQueue aq);
  */
 int aq_alarms( AlarmQueue aq);
 
-
 #endif /* LIBAQ_H_INCLUDED */
-

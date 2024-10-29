@@ -12,6 +12,7 @@ AlarmQueue aq_create( ) {
     aq_frame * aq = malloc(sizeof(aq_frame));
     aq->size = 0;
     aq->alarms = 0;
+    aq->alarm_msg = NULL;
     aq->head = NULL;
     aq->tail = NULL;
     return aq;

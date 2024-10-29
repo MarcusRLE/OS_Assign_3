@@ -64,7 +64,7 @@ int aq_recv( AlarmQueue aq, void * * msg) {
     if (aq_alarms(frame) > 0){
         *msg = frame->alarm_msg;
         frame->alarms--;
-
+        frame->alarm_msg = NULL;
         // If there are no more alarms, signal the empty condition
         pthread_cond_signal(&frame->no_room);
         ret = AQ_ALARM;
@@ -116,7 +116,7 @@ int aq_alarms( AlarmQueue aq) {
 int insert_alarm(aq_frame * frame, void * msg){
     while(aq_alarms(frame) > 0){
         // Wait for the alarm to be consumed
-        pthread_cond_wait(&frame->empty, &frame->lock);
+        pthread_cond_wait(&frame->no_room, &frame->lock);
     }
     frame->alarm_msg = msg;
     frame->alarms++;

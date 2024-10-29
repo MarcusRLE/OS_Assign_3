@@ -25,16 +25,11 @@ int aq_send( AlarmQueue aq, void * msg, MsgKind k){
     /*
      * =========== ERROR HANDLING ===========
      */
-
     // Check if the queue is initialized
-    if (aq == NULL) {
-        return AQ_UNINIT;
-    }
+    if (aq == NULL) return AQ_UNINIT;
 
     // Check if the message is NULL
-    if (msg == NULL) {
-        return AQ_NULL_MSG;
-    }
+    if (msg == NULL) return AQ_NULL_MSG;
 
     /*
      * =========== ADDING MESSAGE ===========
@@ -51,27 +46,26 @@ int aq_recv( AlarmQueue aq, void * * msg) {
      * =========== ERROR HANDLING ===========
      */
     // Check if the queue is initialized
-    if (aq == NULL) {
-        return AQ_UNINIT;
-    }
-
-    /*// Check if there are messages
-    if (((aq_frame *)aq)->head == NULL && aq_alarms(aq) == 0) {
-        return AQ_NO_MSG;
-    }*/
+    if (aq == NULL) return AQ_UNINIT;
 
     /*
      * =========== PULLING MESSAGE ===========
      */
     pthread_mutex_lock(&((aq_frame *)aq)->lock);
+
     int ret;
     aq_frame * frame = (aq_frame*) aq;
+
+    // Wait for a message to be available
     if(aq_size(aq) == 0){
         pthread_cond_wait(&frame->empty, &frame->lock);
     }
+
     if (aq_alarms(frame) > 0){
         *msg = frame->alarm_msg;
         frame->alarms--;
+
+        // If there are no more alarms, signal the empty condition
         pthread_cond_signal(&frame->no_room);
         ret = AQ_ALARM;
     } else {
@@ -93,6 +87,7 @@ int aq_recv( AlarmQueue aq, void * * msg) {
         free(pulled);
         ret = AQ_NORMAL;
     }
+
     pthread_mutex_unlock(&((aq_frame *)aq)->lock);
     return ret;
 }
@@ -113,12 +108,14 @@ int aq_alarms( AlarmQueue aq) {
     return ((aq_frame *)aq)->alarms;
 }
 
-/*
- * =========== INTERNAL FUNCTIONS ===========
+/* ##########################################
+ * #           INTERNAL FUNCTIONS           #
+ * ##########################################
  */
 
 int insert_alarm(aq_frame * frame, void * msg){
     while(aq_alarms(frame) > 0){
+        // Wait for the alarm to be consumed
         pthread_cond_wait(&frame->empty, &frame->lock);
     }
     frame->alarm_msg = msg;

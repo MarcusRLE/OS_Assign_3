@@ -40,6 +40,7 @@ typedef struct aq_node {
 typedef struct aq_frame{
     int size;
     int alarms;
+    void * alarm_msg;
     aq_node * head;
     aq_node * tail;
 } aq_frame;
@@ -78,6 +79,9 @@ int aq_size( AlarmQueue aq);
  * @retval  Number of alarm messages currently held by the queue
  */
 int aq_alarms( AlarmQueue aq);
+
+int insert_tail(aq_frame * frame, aq_node * new_node);
+int insert_head(aq_frame * frame, aq_node * new_node);
 
 #endif /* LIBAQ_H_INCLUDED */
 

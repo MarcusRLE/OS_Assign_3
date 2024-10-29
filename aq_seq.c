@@ -17,6 +17,27 @@ AlarmQueue aq_create( ) {
     return aq;
 }
 
+int insert_tail(aq_frame * frame, aq_node * new_node){
+    new_node->next = NULL;
+    if(frame->head == NULL) { // If list is empty, also make head
+        frame->head = new_node;
+        new_node->prev = NULL;
+    } else { // Cycle to end of list
+        aq_node* current = frame->head;
+        while(current->next != NULL) {
+            current = current->next;
+        }
+        current->next = new_node;
+        new_node->prev = current;
+    }
+    frame->tail = new_node;
+
+    // Increment the size of the queue
+    frame->size++;
+
+    return 0;
+}
+
 int aq_send( AlarmQueue aq, void * msg, MsgKind k){
     /*
      * =========== ERROR HANDLING ===========
@@ -45,32 +66,10 @@ int aq_send( AlarmQueue aq, void * msg, MsgKind k){
     new_node->kind = k;
 
     if (k == AQ_ALARM) { // If is alarm, insert as head
-        // Set new_node as new head of the list
-        new_node->next = frame->head;
-        if(frame->head != NULL){ // If list is not empty, set prev of current head to new node
-            frame->head->prev = new_node;
-        }
-        frame->head = new_node;
-        new_node->prev = NULL;
-        frame->alarms++;
+        insert_head(frame, new_node);
     } else { // If normal message, insert as tail
-        new_node->next = NULL;
-        if(frame->head == NULL) { // If list is empty, also make head
-            frame->head = new_node;
-            new_node->prev = NULL;
-        } else { // Cycle to end of list
-            aq_node* current = ((aq_frame*) aq)->head;
-            while(current->next != NULL) {
-                current = current->next;
-            }
-            current->next = new_node;
-            new_node->prev = current;
-        }
-        frame->tail = new_node;
+        insert_tail(frame, new_node);
     }
-
-    // Increment the size of the queue
-    frame->size++;
     return 0;
 }
 
@@ -132,5 +131,25 @@ int aq_alarms( AlarmQueue aq) {
     return ((aq_frame *)aq)->alarms;
 }
 
+int insert_head(aq_frame * frame, aq_node * new_node){
+    new_node->prev = NULL;
+    if(frame->head == NULL) { // If list is empty, also make tail
+        frame->tail = new_node;
+        new_node->next = NULL;
+    } else { // Insert as head
+        new_node->next = frame->head;
+        frame->head->prev = new_node;
+    }
+    frame->head = new_node;
 
+    // Increment the size of the queue
+    frame->size++;
+
+    // Increment the number of alarms if the message is an alarm
+    if(new_node->kind == AQ_ALARM){
+        frame->alarms++;
+    }
+
+    return 0;
+}
 

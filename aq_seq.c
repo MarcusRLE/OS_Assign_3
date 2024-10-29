@@ -17,6 +17,100 @@ AlarmQueue aq_create( ) {
     return aq;
 }
 
+int aq_send( AlarmQueue aq, void * msg, MsgKind k){
+    /*
+     * =========== ERROR HANDLING ===========
+     */
+    // Check if the queue is initialized
+    if (aq == NULL) {
+        return AQ_UNINIT;
+    }
+
+    // Check if the message is NULL
+    if (msg == NULL) {
+        return AQ_NULL_MSG;
+    }
+
+    /*
+     * =========== ADDING MESSAGE ===========
+     */
+    return insert_msg(aq, msg, k);
+}
+
+int aq_recv( AlarmQueue aq, void * * msg) {
+    /*
+     * =========== ERROR HANDLING ===========
+     */
+    // Check if the queue is initialized
+    if (aq == NULL) {
+        return AQ_UNINIT;
+    }
+
+    // Check if there are messages
+    if (((aq_frame *)aq)->head == NULL && aq_alarms(aq) == 0) {
+        return AQ_NO_MSG;
+    }
+
+    /*
+     * =========== PULLING MESSAGE ===========
+     */
+
+    aq_frame * frame = (aq_frame*) aq;
+    if (aq_alarms(frame) > 0){
+        *msg = frame->alarm_msg;
+        frame->alarms--;
+        return AQ_ALARM;
+    } else {
+        aq_node * pulled = frame->head;
+        // Update the head of the queue
+        if(aq_size(aq) == 1){ // If only one message in the queue
+            frame->head = NULL;
+            frame->tail = NULL;
+        } else { // If more than one message in the queue
+            frame->head = pulled->next;
+            frame->head->prev = NULL;
+        }
+
+        // Decrement the size of the queue and alarms if the message is an alarm
+        frame->size--;
+
+        *msg = pulled->msg;
+
+        free(pulled);
+        return AQ_NORMAL;
+    }
+}
+
+int aq_size( AlarmQueue aq) {
+    // Check if the queue is initialized
+    if (aq == NULL) {
+        return AQ_UNINIT;
+    }
+    return ((aq_frame *)aq)->size + ((aq_frame *)aq)->alarms;
+}
+
+int aq_alarms( AlarmQueue aq) {
+    // Check if the queue is initialized
+    if (aq == NULL) {
+        return AQ_UNINIT;
+    }
+    return ((aq_frame *)aq)->alarms;
+}
+
+/*
+ * =========== INTERNAL FUNCTIONS ===========
+ */
+
+int insert_alarm(aq_frame * frame, void * msg){
+    if(aq_alarms(frame) == 0){
+        frame->alarm_msg = msg;
+        frame->alarms++;
+        return 0;
+    } else {
+        return AQ_NO_ROOM;
+    }
+}
+
 int insert_tail(aq_frame * frame, aq_node * new_node){
     new_node->next = NULL;
     if(frame->head == NULL) { // If list is empty, also make head
@@ -38,118 +132,14 @@ int insert_tail(aq_frame * frame, aq_node * new_node){
     return 0;
 }
 
-int aq_send( AlarmQueue aq, void * msg, MsgKind k){
-    /*
-     * =========== ERROR HANDLING ===========
-     */
-    // Check if the queue is initialized
-    if (aq == NULL) {
-        return AQ_UNINIT;
-    }
-
-    // Check if the message is NULL
-    if (msg == NULL) {
-        return AQ_NULL_MSG;
-    }
-
-    // Check if there is room for the message if alarm
-    if (k == AQ_ALARM && aq_alarms(aq) > 0) {
-        return AQ_NO_ROOM;
-    }
-
-    /*
-     * =========== ADDING MESSAGE ===========
-     */
+int insert_msg(AlarmQueue aq, void * msg, MsgKind k){
     aq_frame * frame = (aq_frame*) aq;
-    aq_node * new_node = malloc(sizeof(aq_node));
-    new_node->msg = msg;
-    new_node->kind = k;
-
     if (k == AQ_ALARM) { // If is alarm, insert as head
-        insert_head(frame, new_node);
+        return insert_alarm(frame, msg);
     } else { // If normal message, insert as tail
-        insert_tail(frame, new_node);
+        aq_node * new_node = malloc(sizeof(aq_node));
+        new_node->msg = msg;
+        new_node->kind = k;
+        return insert_tail(frame, new_node);
     }
-    return 0;
 }
-
-int aq_recv( AlarmQueue aq, void * * msg) {
-    /*
-     * =========== ERROR HANDLING ===========
-     */
-    // Check if the queue is initialized
-    if (aq == NULL) {
-        return AQ_UNINIT;
-    }
-
-    // Check if there are messages
-    if (((aq_frame *)aq)->head == NULL) {
-        return AQ_NO_MSG;
-    }
-
-    /*
-     * =========== PULLING MESSAGE ===========
-     */
-    // Pull the node from head
-    aq_frame * frame = (aq_frame*) aq;
-    aq_node * pulled = frame->head;
-
-    // Update the head of the queue
-    if(aq_size(aq) == 1){ // If only one message in the queue
-        frame->head = NULL;
-        frame->tail = NULL;
-    } else { // If more than one message in the queue
-        frame->head = pulled->next;
-        frame->head->prev = NULL;
-    }
-
-    // Decrement the size of the queue and alarms if the message is an alarm
-    frame->size--;
-    if(pulled->kind == AQ_ALARM){
-        frame->alarms--;
-    }
-
-    *msg = pulled->msg;
-    char kind = pulled->kind;
-    free(pulled);
-    return kind;
-}
-
-int aq_size( AlarmQueue aq) {
-    // Check if the queue is initialized
-    if (aq == NULL) {
-        return AQ_UNINIT;
-    }
-    return ((aq_frame *)aq)->size;
-}
-
-int aq_alarms( AlarmQueue aq) {
-    // Check if the queue is initialized
-    if (aq == NULL) {
-        return AQ_UNINIT;
-    }
-    return ((aq_frame *)aq)->alarms;
-}
-
-int insert_head(aq_frame * frame, aq_node * new_node){
-    new_node->prev = NULL;
-    if(frame->head == NULL) { // If list is empty, also make tail
-        frame->tail = new_node;
-        new_node->next = NULL;
-    } else { // Insert as head
-        new_node->next = frame->head;
-        frame->head->prev = new_node;
-    }
-    frame->head = new_node;
-
-    // Increment the size of the queue
-    frame->size++;
-
-    // Increment the number of alarms if the message is an alarm
-    if(new_node->kind == AQ_ALARM){
-        frame->alarms++;
-    }
-
-    return 0;
-}
-

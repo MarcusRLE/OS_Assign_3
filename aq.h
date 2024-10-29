@@ -81,7 +81,8 @@ int aq_size( AlarmQueue aq);
 int aq_alarms( AlarmQueue aq);
 
 int insert_tail(aq_frame * frame, aq_node * new_node);
-int insert_head(aq_frame * frame, aq_node * new_node);
+int insert_alarm(aq_frame * frame, void * msg);
+int insert_msg(AlarmQueue aq, void * msg, MsgKind k);
 
 #endif /* LIBAQ_H_INCLUDED */
 

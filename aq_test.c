@@ -67,7 +67,9 @@ int main(int argc, char ** argv) {
   printf("Threads terminated with %ld, %ld\n", (uintptr_t) res1, (uintptr_t) res2);
 
   print_sizes(q);
-  
+
+
+
   return 0;
 }
 

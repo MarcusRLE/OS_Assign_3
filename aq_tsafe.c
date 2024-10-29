@@ -76,7 +76,6 @@ int aq_recv( AlarmQueue aq, void * * msg) {
             frame->tail = NULL;
         } else { // If more than one message in the queue
             frame->head = pulled->next;
-            frame->head->prev = NULL;
         }
 
         // Decrement the size of the queue and alarms if the message is an alarm
@@ -127,14 +126,12 @@ int insert_tail(aq_frame * frame, aq_node * new_node){
     new_node->next = NULL;
     if(frame->head == NULL) { // If list is empty, also make head
         frame->head = new_node;
-        new_node->prev = NULL;
     } else { // Cycle to end of list
         aq_node* current = frame->head;
         while(current->next != NULL) {
             current = current->next;
         }
         current->next = new_node;
-        new_node->prev = current;
     }
     frame->tail = new_node;
 

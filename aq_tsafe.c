@@ -65,7 +65,7 @@ int aq_recv( AlarmQueue aq, void * * msg) {
         *msg = frame->alarm_msg;
         frame->alarms--;
         frame->alarm_msg = NULL;
-        // If there are no more alarms, signal the empty condition
+        // If there are no more alarms, signal the no room condition
         pthread_cond_signal(&frame->no_room);
         ret = AQ_ALARM;
     } else {

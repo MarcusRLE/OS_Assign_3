@@ -57,7 +57,7 @@ int aq_recv( AlarmQueue aq, void * * msg) {
     aq_frame * frame = (aq_frame*) aq;
 
     // Wait for a message to be available
-    if(aq_size(aq) == 0){
+    while(aq_size(aq) == 0){
         pthread_cond_wait(&frame->empty, &frame->lock);
     }
 
@@ -148,7 +148,6 @@ int insert_msg(AlarmQueue aq, void * msg, MsgKind k){
     } else { // If normal message, insert as tail
         aq_node * new_node = malloc(sizeof(aq_node));
         new_node->msg = msg;
-        new_node->kind = k;
         return insert_tail(frame, new_node);
     }
 }

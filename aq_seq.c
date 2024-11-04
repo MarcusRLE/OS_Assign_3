@@ -137,7 +137,6 @@ int insert_msg(AlarmQueue aq, void * msg, MsgKind k){
     } else { // If normal message, insert as tail
         aq_node * new_node = malloc(sizeof(aq_node));
         new_node->msg = msg;
-        new_node->kind = k;
         return insert_tail(frame, new_node);
     }
 }

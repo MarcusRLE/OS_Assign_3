@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <pthread.h>
 
+#include <assert.h>
+
 #include "aq.h"
 #include "test_own.h"
 
@@ -20,15 +22,26 @@
 
 static AlarmQueue q;
 
-int main(int argc, char ** argv) {
-    test(1);
-    test(2);
+void * producer (void * arg) {
+    put_normal(q, 1);
+    put_alarm(q, 2);
+    printf("!! Attempting to put new alarm message with value 3 !!\n");
+    put_alarm(q, 3);
+
     return 0;
 }
 
-int test(int testNr){
-    printf("============= TEST #%d =============\n", testNr);
-    printf("\n");
+void * consumer(void * arg) {
+    printf("-- Consumer thread sleeping for 5 sec --\n");
+    msleep(5000);
+    printf("-- Consumer thread waking up --\n");
+    get(q);
+    get(q);
+
+    return 0;
+}
+
+int main(int argc, char ** argv) {
     int ret;
 
     q = aq_create();
@@ -44,14 +57,11 @@ int test(int testNr){
     void * res1;
     void * res2;
 
+    printf("----------------\n");
+
     /* Fork threads */
-    if(testNr == 1){
-        pthread_create(&t1, NULL, p1, NULL);
-        pthread_create(&t2, NULL, c1, NULL);
-    } else if(testNr == 2){
-        pthread_create(&t1, NULL, p2, NULL);
-        pthread_create(&t2, NULL, c2, NULL);
-    }
+    pthread_create(&t1, NULL, producer, NULL);
+    pthread_create(&t2, NULL, consumer, NULL);
 
     /* Join with all threads */
     pthread_join(t1, &res1);
@@ -61,36 +71,10 @@ int test(int testNr){
     printf("Threads terminated with %ld, %ld\n", (uintptr_t) res1, (uintptr_t) res2);
 
     print_sizes(q);
-    printf("====================================\n");
-    printf("\n");
-    printf("\n");
-    return 0;
-}
 
-void * p1 (void * arg) {
-    put_normal(q, 1);
-    put_alarm(q, 2);
-    put_alarm(q, 3);
+
 
     return 0;
 }
 
-void * c1(void * arg) {
-    get(q);
-    msleep(2000);
-    get(q);
-    get(q);
 
-    return 0;
-}
-
-void * c2(void * arg){
-    get(q);
-    return 0;
-}
-void * p2(void * arg){
-    put_normal(q, 1);
-    put_alarm(q, 2);
-    put_normal(q, 3);
-    return 0;
-}

@@ -116,11 +116,13 @@ int insert_tail(aq_frame * frame, aq_node * new_node){
     if(frame->head == NULL) { // If list is empty, also make head
         frame->head = new_node;
     } else { // Cycle to end of list
-        aq_node* current = frame->head;
+        frame->tail->next = new_node;
+
+        /*aq_node* current = frame->head;
         while(current->next != NULL) {
             current = current->next;
         }
-        current->next = new_node;
+        current->next = new_node;*/
     }
     frame->tail = new_node;
 

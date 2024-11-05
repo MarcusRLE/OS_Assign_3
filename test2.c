@@ -16,10 +16,11 @@
 
 static AlarmQueue q;
 
-void * producer (void * arg) {
-    printf("-- Producer thread sleeping for 5 sec --\n");
+void * consumer (void * arg) {
+    // Waiting for producer to put messages in queue, and alarm message as last
+    printf("-- Consumer thread sleeping for 5 sec --\n");
     msleep(5000);
-    printf("-- Producer thread waking up --\n");
+    printf("-- Consumer thread waking up --\n");
     int first = get(q);
     int second = get(q);
     printf("First messaged pulled: '%d', Second message pulled: '%d'\n", first, second);
@@ -30,7 +31,7 @@ void * producer (void * arg) {
     return 0;
 }
 
-void * consumer(void * arg) {
+void * producer(void * arg) {
     for(int i = 1; i < 6; i++){
         put_normal(q, i);
     }

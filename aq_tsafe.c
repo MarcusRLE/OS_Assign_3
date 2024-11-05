@@ -36,7 +36,9 @@ int aq_send( AlarmQueue aq, void * msg, MsgKind k){
      */
     pthread_mutex_lock(&((aq_frame *)aq)->lock);
     int ret = insert_msg(aq, msg, k);
-    pthread_cond_signal(&((aq_frame *)aq)->empty);
+    if(aq_size(aq) == 1){ // If only one message in the queue, signal the empty condition
+
+    }
     pthread_mutex_unlock(&((aq_frame *)aq)->lock);
     return ret;
 }
@@ -126,12 +128,9 @@ int insert_tail(aq_frame * frame, aq_node * new_node){
     new_node->next = NULL;
     if(frame->head == NULL) { // If list is empty, also make head
         frame->head = new_node;
-    } else { // Cycle to end of list
-        aq_node* current = frame->head;
-        while(current->next != NULL) {
-            current = current->next;
-        }
-        current->next = new_node;
+        pthread_cond_signal(&frame->empty);
+    } else {
+        frame->tail->next = new_node;
     }
     frame->tail = new_node;
 

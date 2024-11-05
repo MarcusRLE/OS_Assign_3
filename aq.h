@@ -9,6 +9,7 @@
 #define LIBAQ_H_INCLUDED
 
 #include <stddef.h>
+#include <pthread.h>
 
 /**
  * @brief Messages are transferred as pointers to blocks allocated by malloc
@@ -26,7 +27,26 @@ typedef char MsgKind;
 #define AQ_NO_ROOM     -4   // No room for message
 #define AQ_NOT_IMPL  -100   // Operation is not implemented
 
-typedef void * AlarmQueue;  // Opaque type 
+typedef void * AlarmQueue;  // Opaque type
+
+// Internal structures containing the messages
+typedef struct aq_node {
+        void * msg;
+        MsgKind kind;
+    struct aq_node * next;
+} aq_node;
+
+// Internal structure 'containing' the queue, pointing to head and tail
+typedef struct aq_frame{
+    int size;
+    int alarms;
+    void * alarm_msg;
+    aq_node * head;
+    aq_node * tail;
+    pthread_mutex_t lock;
+    pthread_cond_t no_room;
+    pthread_cond_t empty;
+} aq_frame;
 
 /**
  * @name    aq_create
@@ -63,6 +83,9 @@ int aq_size( AlarmQueue aq);
  */
 int aq_alarms( AlarmQueue aq);
 
+int insert_tail(aq_frame * frame, aq_node * new_node);
+int insert_alarm(aq_frame * frame, void * msg);
+int insert_msg(AlarmQueue aq, void * msg, MsgKind k);
 
 #endif /* LIBAQ_H_INCLUDED */
 
